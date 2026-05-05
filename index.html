@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fandom Echo | 追星人格探索</title>
+    <style>
+        :root {
+            --accent: #C5FF4A; 
+            --bg: #050505;
+            --card-bg: #111111;
+            --text-main: #FFFFFF;
+            --text-sub: #777777;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: -apple-system, "SF Pro Display", "PingFang SC", sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container { width: 100%; max-width: 440px; padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 32px;
+            padding: 40px 24px;
+            position: relative;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 100%;
+        }
+
+        h1 { font-size: 20px; font-weight: 800; text-align: center; margin: 0 0 8px 0; letter-spacing: 2px; }
+        .tagline { color: var(--accent); text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 4px; margin-bottom: 30px; opacity: 0.8; }
+
+        .progress-container { height: 1.5px; background: rgba(255,255,255,0.05); margin-bottom: 30px; }
+        .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s ease; }
+
+        .q-text { font-size: 17px; line-height: 1.6; margin-bottom: 30px; font-weight: 500; }
+
+        .option {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 16px 20px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            display: block; width: 100%; text-align: left;
+        }
+        .option:active { background: rgba(197, 255, 74, 0.1); border-color: var(--accent); }
+
+        .btn {
+            background: var(--accent); color: #000; border: none; padding: 18px; border-radius: 100px;
+            width: 100%; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 12px;
+        }
+
+        /* 结果展示区优化 */
+        #result { padding: 0; overflow: hidden; }
+        .res-img-wrap { width: 100%; aspect-ratio: 1 / 1; overflow: hidden; background: #1a1a1a; }
+        .res-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .res-content { padding: 24px 24px 40px 24px; text-align: center; }
+
+        .echo-id-label { font-size: 10px; color: var(--text-sub); letter-spacing: 2px; font-weight: 700; display: block; margin-bottom: 4px;}
+        .type-prefix { color: var(--accent); font-size: 12px; font-weight: 600; display: block; }
+        .type-code { font-size: 48px; font-weight: 900; margin: 0; color: var(--accent); letter-spacing: -1px; }
+        .type-name { font-size: 18px; color: var(--text-main); margin-bottom: 20px; font-weight: 600; }
+        .desc { font-size: 14px; line-height: 1.8; text-align: left; color: #bbb; margin-bottom: 24px; padding: 0 10px;}
+
+        /* Toast 适配 */
+        #toast {
+            position: fixed; bottom: 10%; left: 50%; transform: translateX(-50%);
+            background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(10px);
+            color: #FFFFFF; padding: 14px 24px; border-radius: 20px;
+            font-size: 13px; z-index: 200; display: none; width: 85%; max-width: 320px;
+            text-align: center; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .toast-emoji { color: var(--accent); margin-left: 4px; filter: drop-shadow(0 0 5px var(--accent)); }
+
+        /* 图鉴滚动层 */
+        #gallery-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; 
+            z-index: 100; display: none; flex-direction: column; 
+        }
+        .gallery-scroll { display: flex; overflow-x: auto; padding: 40px 20px; scroll-snap-type: x mandatory; gap: 12px; flex: 1; align-items: center; }
+        .gallery-card { 
+            min-width: 85%; background: #111; border-radius: 24px; overflow: hidden;
+            scroll-snap-align: center; border: 1px solid var(--border);
+        }
+        .gallery-img { width: 100%; aspect-ratio: 1.2 / 1; object-fit: cover; background: #222;}
+
+        .watermark { font-size: 10px; color: #222; letter-spacing: 2px; padding: 15px 0; font-family: monospace; }
+
+        #quiz, #result { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Landing -->
+    <div id="landing" class="card">
+        <h1>FANDOM ECHO</h1>
+        <p class="tagline">追星潜意识投影测试</p>
+        <p style="color:var(--text-sub); font-size:13px; line-height:1.8; text-align:center; margin-bottom:40px;">
+            每一份热爱，都是一种投影。<br>
+            在这个数字化追逐的时代，<br>
+            你是在修复过去，还是在构建自我？
+        </p>
+        <button class="btn" onclick="startTest()">进入探索</button>
+    </div>
+
+    <!-- Quiz -->
+    <div id="quiz" class="card">
+        <div class="progress-container"><div id="progress" class="progress-bar"></div></div>
+        <div class="question-box">
+            <div class="q-text" id="q-text"></div>
+            <div id="options"></div>
+        </div>
+    </div>
+
+    <!-- Result -->
+    <div id="result" class="card">
+        <div class="res-img-wrap">
+            <img id="res-img" src="" alt="人格插图">
+        </div>
+        <div class="res-content">
+            <span class="echo-id-label">STARRING ECHO ID</span>
+            <span class="type-prefix">你的追星人格是：</span>
+            <div class="type-code" id="res-code"></div>
+            <div class="type-name" id="res-name"></div>
+            <div class="desc" id="res-desc"></div>
+            <button class="btn" onclick="copyShareText()">一键同步 ID (分享)</button>
+            <button class="btn" style="background:transparent; color:var(--accent); border:1px solid var(--accent); margin-top:12px;" onclick="showGallery()">查看 8 种人格图鉴</button>
+            <p style="font-size:11px; color:#333; margin-top:20px; cursor:pointer;" onclick="location.reload()">重新采样测试</p>
+        </div>
+    </div>
+</div>
+
+<div class="watermark">©AMISOI</div>
+
+<!-- 图鉴 -->
+<div id="gallery-overlay">
+    <div class="gallery-scroll" id="gallery-content"></div>
+    <button class="btn" style="width:160px; margin: 0 auto 40px auto; background:#222; color:#fff;" onclick="hideGallery()">返回结果</button>
+</div>
+
+<div id="toast">分享文案已复制！邀搭子来测 <span class="toast-emoji">✨</span></div>
+
+<script>
+    // 题目保持不变
+    const questions = [
+        { q: "写错了一段重要人生手账，你会：", options: ["反复涂抹，痕迹也要留在那。", "用修正贴盖住，尝试圆满。", "直接撕掉，宁可它从不存在。", "翻页继续，错误不影响整体。"] },
+        { q: "拼图少了一块核心碎片，你会：", options: ["盯着缺口看很久，怀念它。", "想尽一切办法补齐它。", "既然不完美了，就全部收起来。", "拍照留念残缺，然后做别的。"] },
+        { q: "陌生异国街头迷了路，你的状态：", options: ["享受这种未知的宿命感。", "精准校对地图，确保行走有意义。", "如果不适，立刻回到安全区。", "随处走走，看有没有感兴趣的店。"] },
+        { q: "手机里积压了很久的旧对话，某天翻到：", options: ["翻看记录，重新沉溺情绪。", "一条条处理归档，保持干净。", "直接清空记录，彻底斩断。", "不点它，这些信息毫无意义。"] },
+        { q: "作为电脑，最让你崩溃的故障：", options: ["弹出早已关掉的旧窗口。", "运行变慢，被平庸损耗。", "突然死机，积累瞬间归零。", "内存被无用之事占据。"] },
+        { q: "如何处理有纪念价值的旧物件？", options: ["妥善收好，证明爱过的证据。", "尝试换个用途，继续存在。", "某次大扫除，心狠全部清理。", "很少留下，觉得占地方。"] },
+        { q: "电影剧情进入平淡乏味期：", options: ["坚持看完，寻找深意。", "耐心等待，相信会有转折。", "直接关掉，不浪费时间。", "边看边玩手机，当背景音。"] },
+        { q: "悉心照料的花枯萎了：", options: ["依然浇水，对着它自言自语。", "查方法救活，做最后努力。", "连盆带土扔掉，换新的。", "以后不养了，太消耗精力。"] },
+        { q: "感知到兴趣正在不可逆转地衰减：", options: ["回想心动原因，试图找回共振。", "慢慢降低关注，留个连接。", "突然撤离，不想再有一秒消耗。", "注意力转向新的人或事。"] },
+        { q: "面对一个完全失控的局面：", options: ["纠结“为什么”，陷入情绪循环。", "想办法修补，让一切回到正轨。", "切断信号，从环境里彻底蒸发。", "快速评估，判定不值得就止损。"] },
+        { q: "如果要选择一种天气代表你：", options: ["连绵细雨，潮湿、怀旧。", "稳定的晴天，平和可预测。", "暴雨后的清晨，洗刷后的决绝。", "干燥清爽的秋日，利落、清醒。"] },
+        { q: "玩游戏时的通关倾向：", options: ["反复挖掘细节，为结局流泪。", "追求100%全成就，不允许失败。", "选错关键选项就删档重开。", "寻找最快路径，结果才重要。"] },
+        { q: "你如何理解“承诺”？", options: ["灵魂契约，破碎也要背负余震。", "悉心维护的基石，说到做到。", "时效性东西，过期就没意义。", "视损益而定的约定，随时调整。"] },
+        { q: "心理负荷达到临界值时：", options: ["沉溺负面情绪，在谷底重塑。", "找亲密点同步，沟通中稀释。", "物理式清理，切断关系泄压。", "转移目标，投入确定性任务。"] },
+        { q: "老了回顾一生，希望别人评价：", options: ["爱得深刻，情感从未干瘪。", "长情可靠，守护了重要的东西。", "自由果断，从未被过去束缚。", "精准高效，达成了人生的价值。"] }
+    ];
+
+    function createCardImage(code, name, toneA, toneB) {
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200">
+                <defs>
+                    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="${toneA}" />
+                        <stop offset="100%" stop-color="${toneB}" />
+                    </linearGradient>
+                </defs>
+                <rect width="1200" height="1200" fill="#050505"/>
+                <rect x="40" y="40" width="1120" height="1120" rx="56" fill="url(#bg)" opacity="0.18"/>
+                <circle cx="920" cy="260" r="170" fill="${toneA}" opacity="0.22"/>
+                <circle cx="280" cy="920" r="220" fill="${toneB}" opacity="0.18"/>
+                <text x="100" y="210" fill="#C5FF4A" font-size="42" font-family="Arial, PingFang SC, sans-serif" letter-spacing="10">FANDOM ECHO</text>
+                <text x="100" y="620" fill="#FFFFFF" font-size="180" font-weight="900" font-family="Arial, PingFang SC, sans-serif">${code}</text>
+                <text x="100" y="710" fill="#FFFFFF" font-size="64" font-family="Arial, PingFang SC, sans-serif">${name}</text>
+                <text x="100" y="820" fill="#BDBDBD" font-size="30" font-family="Arial, PingFang SC, sans-serif">Star-chasing personality archive card</text>
+            </svg>
+        `;
+        return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    }
+
+    // 8 人格数据配置
+    const galleryData = [
+        { code: "EBBT", name: "溺爱归因型", img: createCardImage("EBBT", "溺爱归因型", "#d8ff72", "#4c9bff"), desc: "你是温柔的盾牌。你会自觉替爱豆补齐所有解释。不是看不见问题，而是选择相信。你是废墟上种玫瑰的诗人。" },
+        { code: "SCBT", name: "一次出局型", img: createCardImage("SCBT", "一次出局型", "#ff7a59", "#ff3d81"), desc: "你是冷酷的审判官。业务退步或塌房是你的红线，一旦触碰，切断机制瞬间生效。你不给第二次机会。" },
+        { code: "LBBT", name: "长期陪跑型", img: createCardImage("LBBT", "长期陪跑型", "#9effb7", "#3dc8c8"), desc: "你是稳定的恒星。你不追求瞬间狂热，信奉细水长流。追星对你而言是一场跨越时间的马拉松。" },
+        { code: "DDBO", name: "冷却旁观型", img: createCardImage("DDBO", "冷却旁观型", "#87a7ff", "#4f5bd5"), desc: "你是数字游民。你始终保留退出权，把追星看作审美补充而非支柱。你更在意自我的成长。" },
+        { code: "GSCO", name: "共情守望者", img: createCardImage("GSCO", "共情守望者", "#ffe28a", "#ff8d6b"), desc: "处于情感与理性的平衡点。你既能深情共鸣，也保留着观察者的清醒。你是粉丝群里最稳的力量。" },
+        { code: "LMZB", name: "精准狙击手", img: createCardImage("LMZB", "精准狙击手", "#a1f6ff", "#00b894"), desc: "你只在乎高质量产出。你像一个猎人，只捕捉偶像最高光的瞬间，对琐事毫不关心，极致高效。" },
+        { code: "CNSS", name: "沉浸式体验家", img: createCardImage("CNSS", "沉浸式体验家", "#ff9de1", "#a78bfa"), desc: "你把追星当成一场盛大的RPG。你投入感情不是为了某个人，而是为了那种“正在热爱”的自我状态。" },
+        { code: "BGDT", name: "自由脱轨者", img: createCardImage("BGDT", "自由脱轨者", "#f8ff9d", "#ffb86b"), desc: "你是最难被定义的。你可能今天狂热，明天就消失。你的热爱只随心动，不受逻辑约束。" }
+    ];
+
+    let cur = 0, controlScore = 0, attachScore = 0;
+    const controlIndices = [0, 3, 5, 7, 10, 12, 14], attachIndices = [1, 2, 4, 6, 8, 9, 11, 13];
+    let finalCode = "", finalName = "";
+
+    function startTest() {
+        document.getElementById('landing').style.display = 'none';
+        document.getElementById('quiz').style.display = 'block';
+        showQ();
+    }
+
+    function showQ() {
+        const q = questions[cur];
+        document.getElementById('q-text').innerText = (cur + 1) + ". " + q.q;
+        document.getElementById('progress').style.width = ((cur / 15) * 100) + "%";
+        const optContainer = document.getElementById('options');
+        optContainer.innerHTML = '';
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option';
+            btn.innerText = opt;
+            btn.onclick = () => select(i);
+            optContainer.appendChild(btn);
+        });
+    }
+
+    function select(idx) {
+        const score = [4, 3, 2, 1][idx];
+        if (controlIndices.includes(cur)) controlScore += score;
+        if (attachIndices.includes(cur)) attachScore += score;
+        cur++;
+        if (cur < 15) showQ();
+        else calcResult();
+    }
+
+    function calcResult() {
+        document.getElementById('quiz').style.display = 'none';
+        document.getElementById('result').style.display = 'block';
+        let res;
+        const c = controlScore, a = attachScore;
+        if (c >= 21 && a >= 24) res = galleryData[0];
+        else if (c >= 21 && a <= 16) res = galleryData[1];
+        else if (c <= 14 && a >= 24) res = galleryData[2];
+        else if (c <= 14 && a <= 16) res = galleryData[3];
+        else if (c >= 15 && c <= 20 && a >= 20) res = galleryData[4];
+        else if (c >= 15 && c <= 20 && a < 20) res = galleryData[5];
+        else if (c < 15 && a >= 20) res = galleryData[6];
+        else res = galleryData[7];
+
+        finalCode = res.code;
+        finalName = res.name;
+        document.getElementById('res-img').src = res.img;
+        document.getElementById('res-code').innerText = res.code;
+        document.getElementById('res-name').innerText = res.name;
+        document.getElementById('res-desc').innerHTML = res.desc;
+    }
+
+    function copyShareText() {
+        const url = window.location.href.split('#')[0];
+        const text = `我的追星人格 Echo ID 是【${finalCode} · ${finalName}】✨\n在这个数字化星群里，我找到了我的投影位。你也来测测你的追星本能吧！\n传送门：${url}`;
+        navigator.clipboard.writeText(text).then(() => {
+            const toast = document.getElementById('toast');
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 2500);
+        });
+    }
+
+    function showGallery() {
+        const content = document.getElementById('gallery-content');
+        content.innerHTML = galleryData.map(item => `
+            <div class="gallery-card">
+                <img class="gallery-img" src="${item.img}">
+                <div style="padding: 24px; text-align: center;">
+                    <div style="font-size:32px; font-weight:900; color:var(--accent);">${item.code}</div>
+                    <div style="font-size:16px; font-weight:600; color:#fff; margin-bottom:12px;">${item.name}</div>
+                    <div style="font-size:13px; color:#888; line-height:1.6; text-align:left;">${item.desc}</div>
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('gallery-overlay').style.display = 'flex';
+    }
+
+    function hideGallery() { document.getElementById('gallery-overlay').style.display = 'none'; }
+</script>
+
+</body>
+</html>
