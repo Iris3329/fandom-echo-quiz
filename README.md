@@ -40,7 +40,7 @@
 
 ### 如何开始测试？
 
-1. 点击 [进入测试]((https://iris3329.github.io/fandom-echo-quiz/))
+1. 点击 [进入测试](https://iris3329.github.io/fandom-echo-quiz/)
 2. 回答 15 道题
 3. 得到属于你的 **FANDOM ECHO** 人格卡
 
